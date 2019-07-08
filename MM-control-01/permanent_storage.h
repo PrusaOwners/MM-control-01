@@ -10,6 +10,10 @@ void permanentStorageInit();
 
 void eepromEraseAll();
 
+// Uart Selection storage
+uint8_t get_stored_uart();
+void set_stored_uart(uint8_t idx);
+
 //! @brief Read manipulate and store bowden length
 //!
 //! Value is stored independently for each filament.

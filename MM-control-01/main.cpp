@@ -24,11 +24,8 @@
 
 uint8_t tmc2130_mode = NORMAL_MODE;
 
-#if (UART_COM == 0)
-FILE* uart_com = uart0io;
-#elif (UART_COM == 1)
-FILE* uart_com = uart1io;
-#endif //(UART_COM == 0)
+FILE* uart_com;
+uint8_t current_uart = 0xFF;
 
 namespace
 {
@@ -229,6 +226,36 @@ void unrecoverable_error()
     }
 }
 
+uint8_t get_uart_idx()
+{
+	return current_uart;
+}
+
+void set_uart(uint8_t idx)
+{
+	// Uninitialized EEPROM or invalid index,
+	// set to default uart
+	if (idx > 1)
+		idx = UART_COM;
+
+	idx = !!idx;
+	if (idx == current_uart)
+		return;
+
+	if (idx) {
+		uart_com = uart1io;
+		stdin = uart0io; // stdin = uart0
+		stdout = uart0io; // stdout = uart0
+	} else {
+		uart_com = uart0io;
+		stdin = uart1io; // stdin = uart1
+		stdout = uart1io; // stdout = uart1
+	}
+
+	current_uart = idx;
+	set_stored_uart(idx);
+}
+
 //! @brief Initialization after reset
 //!
 //! button | action
@@ -261,13 +288,7 @@ void setup()
 	uart1_init(); //uart1
 	led_blink(1);
 
-#if (UART_STD == 0)
-	stdin = uart0io; // stdin = uart0
-	stdout = uart0io; // stdout = uart0
-#elif (UART_STD == 1)
-	stdin = uart1io; // stdin = uart1
-	stdout = uart1io; // stdout = uart1
-#endif //(UART_STD == 1)
+	set_uart(get_stored_uart());
 
 	fprintf_P(uart_com, PSTR("start\n")); //startup message
 

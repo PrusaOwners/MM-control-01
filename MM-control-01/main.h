@@ -12,6 +12,9 @@ void check_filament_not_present();
 void signal_load_failure();
 void signal_ok_after_load_failure();
 
+void set_uart(uint8_t idx);
+uint8_t get_uart_idx();
+
 extern uint8_t tmc2130_mode;
 extern FILE* uart_com;
 

@@ -22,6 +22,7 @@ typedef struct __attribute__ ((packed))
 	uint8_t eepromFilament[800];    //!< Top nibble status, bottom nibble last filament loaded
 	uint8_t eepromDriveErrorCountH;
 	uint8_t eepromDriveErrorCountL[2];
+    uint8_t last_uart;
 }eeprom_t;
 static_assert(sizeof(eeprom_t) - 2 <= E2END, "eeprom_t doesn't fit into EEPROM available.");
 //! @brief EEPROM layout version
@@ -42,6 +43,7 @@ static const uint16_t eepromBowdenLenDefault = 8900u; //!< Default bowden length
 static const uint16_t eepromBowdenLenMinimum = 6900u; //!< Minimum bowden length (~341 mm)
 static const uint16_t eepromBowdenLenMaximum = 16000u; //!< Maximum bowden length (~792 mm)
 
+
 void permanentStorageInit()
 {
     if (eeprom_read_byte((uint8_t*)E2END) != layoutVersion) eepromEraseAll();
@@ -55,6 +57,16 @@ void eepromEraseAll()
         eeprom_update_byte((uint8_t*)i, static_cast<uint8_t>(eepromEmpty));
     }
     eeprom_update_byte((uint8_t*)E2END, layoutVersion);
+}
+
+uint8_t get_stored_uart()
+{
+    return eeprom_read_byte(&(eepromBase->last_uart));
+}
+
+void set_stored_uart(uint8_t idx)
+{
+    eeprom_update_byte(&(eepromBase->last_uart), !!idx);
 }
 
 //! @brief Is filament number valid?

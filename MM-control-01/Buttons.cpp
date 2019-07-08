@@ -56,6 +56,8 @@ bool settings_select_filament()
 //! 11 | 00 | 00 | 01 | 00 | setup bowden length
 //! 11 | 00 | 01 | 00 | 00 | erase EEPROM if unlocked
 //! 11 | 01 | 00 | 00 | 00 | unlock EEPROM erase
+//! 11 | 00 | 00 | 01 | 11 | change primary uart (currently uart0)
+//  11 | 00 | 00 | 10 | 11 | change primary uart (currently uart1)
 //! 11 | 00 | 00 | 00 | 00 | exit setup menu
 //!
 //! @n R - Red LED
@@ -90,12 +92,15 @@ bool setupMenu()
 	}
 	else
 	{
-
-        shr16_set_led(1 << 2 * 4);
-        delay(1);
-        shr16_set_led(2 << 2 * 4);
-        delay(1);
-        shr16_set_led(2 << 2 * _menu);
+        uint8_t uart_idx = get_uart_idx();
+        uint16_t led = (3 << 8);
+        if (_menu < 5) {
+            led |= (2 << 2 * (_menu % 4));
+        }
+        if (_menu == 4) {
+            led |= ((uart_idx + 1) << 2) | (1 << 2 * (_menu % 4));
+        }
+        shr16_set_led(led);
         delay(1);
 
         switch (buttonPressed())
@@ -123,19 +128,25 @@ bool setupMenu()
             case 3: //unlock erase
                 eraseLocked = false;
                 break;
-            case 4: // exit menu
+            case 4: // set uart
+                if (buttonClicked() == Btn::middle) {
+                    set_uart(!uart_idx);
+                    delay(500);
+                }
+                break;
+            case 5: // exit menu
                 _exit = true;
                 break;
             }
             break;
         case Btn::left:
-            if (_menu < 4) { _menu++; delay(800); }
+            if (_menu < 5) { _menu++; delay(800); }
             break;
         default:
             break;
         }
 	}
-		
+
 
     if (_exit)
     {
@@ -217,7 +228,7 @@ void settings_bowden_length()
 					}
 				}
 				button_active = true;
-				break; 
+				break;
 			default:
 				button_active = false;
 				saved_millis = millis();
