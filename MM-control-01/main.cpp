@@ -290,6 +290,10 @@ void setup()
 
 	set_uart(get_stored_uart());
 
+	// Wait for USB connect if usb is primary UART
+	if (current_uart == 0)
+		while(!Serial);
+
 	fprintf_P(uart_com, PSTR("start\n")); //startup message
 
 	spi_init();
