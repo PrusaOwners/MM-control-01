@@ -290,12 +290,6 @@ void setup()
 
 	set_uart(get_stored_uart());
 
-	// Wait for USB connect if usb is primary UART
-	if (current_uart == 0)
-		while(!Serial);
-
-	fprintf_P(uart_com, PSTR("start\n")); //startup message
-
 	spi_init();
 	led_blink(2);
 	led_blink(3);
@@ -310,7 +304,13 @@ void setup()
     if (buttonPressed() == Btn::middle)
     {
         state = S::Setup;
-    }
+    } else if (current_uart == 0) {
+		// Wait for USB to connect if usb is primary UART, but
+		// only if not entering the service menu
+		while (!Serial);
+	}
+
+	fprintf_P(uart_com, PSTR("start\n")); //startup message
 
     tmc2130_init(HOMING_MODE);
     tmc2130_read_gstat(); //consume reset after power up
